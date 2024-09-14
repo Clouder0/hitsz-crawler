@@ -1,0 +1,17 @@
+{
+	"name": "hitsz-crawler",
+	"module": "src/index.ts",
+	"type": "module",
+	"devDependencies": {
+		"@biomejs/biome": "1.9.0",
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"scripts": {
+		"format": "bunx biome check --write .",
+		"dev": "bun run --watch src/index.ts",
+		"start": "bun run src/index.ts"
+	}
+}
