@@ -33,11 +33,7 @@ const fetchHtmlPage = async (item: NewsItem, limiter: Limiter) => {
 		const href_url = `http://info.hitsz.edu.cn/${href[1]}`;
 		content = content.replaceAll(href[0], `href="${href_url}"`);
 	}
-	if (title.length > 20) {
-		await Bun.write(`inner/${title.substring(0, 20)}.html`, content);
-	} else {
-		await Bun.write(`inner/${title}.html`, content);
-	}
+	await Bun.write(`inner2/${Bun.hash(title)}.html`, content);
 	item.fetched = true;
 	console.log(`Fetched ${title}`);
 };
@@ -46,11 +42,21 @@ const { state, saveFile } = await genStater(all_lists);
 const saver = setInterval(() => {
 	saveFile(state);
 }, 5000);
-const limiter = genLimitWorker(100, 3);
-const pending_items = state.news_list.filter((x) => !x.fetched).filter((x) => x.url.startsWith("http://info.hitsz.edu.cn/"));
-// await fetchHtmlPage(pending_items[0], limiter);
-const pending_tasks = pending_items.map((x) => fetchHtmlPage(x, limiter));
-await Promise.all(pending_tasks); 
+const limiter = genLimitWorker(200, 5);
+// const pending_items = state.news_list.filter((x) => !x.fetched).filter((x) => x.url.startsWith("http://info.hitsz.edu.cn/"));
+while (true) {
+	const pending_items = (await Promise.all(state.news_list.filter((x) => x.url.startsWith("http://info.hitsz.edu.cn/")).map(async(x) => {
+		const f = Bun.file(`inner2/${Bun.hash(x.title)}.html`);
+		const has = await f.exists();
+		if(has) return null;
+		return x
+	}))).filter((x) => x !== null);
+	if (pending_items.length === 0) break;
+	// await fetchHtmlPage(pending_items[0], limiter);
+	console.log("Todo: ", pending_items.length);
+	const pending_tasks = pending_items.map((x) => fetchHtmlPage(x, limiter));
+	await Promise.all(pending_tasks);
+}
 console.log("All Done!");
 saveFile(state);
 clearInterval(saver);
