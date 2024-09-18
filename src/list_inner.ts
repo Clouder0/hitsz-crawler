@@ -2,7 +2,6 @@ import type { NewsItem } from ".";
 import { all_lists, logined_cookie } from "./settings";
 import { type Limiter, type State, genLimitWorker, genStater } from "./utils";
 
-
 const item_regex =
 	/<li id="line_u3_0"><span>.+?<\/span>.+?<a href="(.+?)" target=_blank title="(.+?)<\/a><\/li>/g;
 
@@ -19,16 +18,16 @@ const fetchListPage = async (
 		},
 	);
 	const html = await res.text();
-    // console.log(html)
+	// console.log(html)
 	const items = html.matchAll(item_regex);
-    let found_items = 0
+	let found_items = 0;
 	for (const item of items) {
 		const url = `http://info.hitsz.edu.cn/${item[1]}`;
 		const title = item[2].trim();
-        // console.log(url,title)
+		// console.log(url,title)
 		if (append_list.find((news) => news.url === url)) continue;
 		append_list.push({ url, title });
-        found_items++
+		found_items++;
 	}
 	console.log(`Fetched page ${page}, found ${found_items} items`);
 };
